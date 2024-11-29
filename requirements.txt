@@ -1,0 +1,23 @@
+contourpy @ file:///croot/contourpy_1732540045555/work
+cycler @ file:///tmp/build/80754af9/cycler_1637851556182/work
+fonttools @ file:///croot/fonttools_1713551344105/work
+kiwisolver @ file:///work/perseverance-python-buildout/croot/kiwisolver_1698847502605/work
+matplotlib==3.9.2
+mkl-service==2.4.0
+mkl_fft @ file:///io/mkl313/mkl_fft_1730824109137/work
+mkl_random @ file:///io/mkl313/mkl_random_1730823916628/work
+numpy @ file:///croot/numpy_and_numpy_base_1725470312869/work/dist/numpy-2.0.1-cp312-cp312-linux_x86_64.whl#sha256=e2374991344fa2241a2153ef3d550d3a1cd2d50cb1f1d51eddc82870abc88021
+packaging @ file:///croot/packaging_1720101850331/work
+pillow @ file:///croot/pillow_1731594689713/work
+ply @ file:///work/perseverance-python-buildout/croot/ply_1698846188635/work
+pyparsing @ file:///croot/pyparsing_1731445506121/work
+PyQt5==5.15.10
+PyQt5-sip @ file:///work/perseverance-python-buildout/croot/pyqt-split_1698847927472/work/pyqt_sip
+python-dateutil @ file:///croot/python-dateutil_1716495738603/work
+scipy @ file:///croot/scipy_1731622509417/work/dist/scipy-1.14.1-cp312-cp312-linux_x86_64.whl#sha256=de6d793afc66f378faba96ac67487d403fca2ce12d45c414e3c9a9ec32087aec
+setuptools==75.1.0
+sip @ file:///work/perseverance-python-buildout/croot/sip_1698846977033/work
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+tornado @ file:///croot/tornado_1718740109488/work
+unicodedata2 @ file:///croot/unicodedata2_1713212950228/work
+wheel==0.44.0
