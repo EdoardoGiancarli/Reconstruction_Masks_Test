@@ -30,7 +30,8 @@ def sequence_plot(input_sequence: list[c.Sequence],
                   ylabel: list[str] = None,
                   color: list[(str, str)] = None,
                   style: list[str] = ["bar"],
-                  simulated_sources: list[(c.Sequence, float)] = None) -> None:
+                  simulated_sources: list[tuple[int, int, int, float]] = None,
+                  ) -> None:
     """Plot(s) of the input 1D array(s)."""
 
     # number of plots
@@ -159,13 +160,14 @@ def _handle_ticks(ax):
 def _show_sources_pos(ax, reconstr_sources, simulated_sources):
     """Shows the initialized sources position."""
 
-    for idx, value in enumerate(simulated_sources[0]):
-        if value > 0:
-            ax.text(idx, reconstr_sources[idx] + simulated_sources[1],
-                    f"$\\hat{{S}}_{{{idx}}}$", fontsize=10,
-                    bbox=dict(facecolor='white', edgecolor='black', boxstyle='round, pad=0.25'))
-            ax.scatter(idx, reconstr_sources[idx], marker='s', c='DeepSkyBlue',
-                       linewidths=2, edgecolor='b', s=40, alpha=0.8)
+    idx, x, y, offset = simulated_sources
+
+    ax.text(idx, reconstr_sources[idx] + offset,
+            f"$\\hat{{S}}_{{{x}{y}}}$", fontsize=10,
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round, pad=0.25'))
+
+    ax.scatter(idx, reconstr_sources[idx], marker='s', c='DeepSkyBlue',
+                linewidths=2, edgecolor='b', s=40, alpha=0.8)
 
 def _test():
     """Tests plot functions."""
