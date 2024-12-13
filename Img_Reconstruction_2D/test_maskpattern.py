@@ -8,12 +8,12 @@
 """
 
 import unittest
+from unittest import TestCase
 import numpy as np
-
 from maskpattern import URAMaskPattern, MURAMaskPattern
 
 
-class TestURAMaskPattern(unittest.TestCase):
+class TestURAMaskPattern(TestCase):
     """Tests the URAMaskPattern class in maskpattern.py."""
 
     def setUp(self):
@@ -57,7 +57,7 @@ class TestURAMaskPattern(unittest.TestCase):
 
 
 
-class TestMURAMaskPattern(unittest.TestCase):
+class TestMURAMaskPattern(TestCase):
     """Tests the MURAMaskPattern class in maskpattern.py."""
 
     def setUp(self):
