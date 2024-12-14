@@ -1,5 +1,5 @@
 """
-@Title: URA/MURA Coded Mask Pattern Simulation
+@Title: URA/MURA Coded Mask Interface
 @Author: Edoardo Giancarli
 @Date: 13/12/24
 @Content:
