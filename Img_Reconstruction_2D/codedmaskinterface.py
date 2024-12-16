@@ -15,12 +15,14 @@ from scipy.signal import correlate
 class CodedMaskInterface:
     """Interface for the URA/MURA coded mask camera analysis."""
 
-    def __init__(self, pattern_type: str,
+    def __init__(self,
+                 pattern_type: str,
                  rank: int,
-                 padding: None | tuple[int, int] = None):
+                 padding: bool = False):
         
+        self.padding = padding
         self.mask_type = self._get_mask_type(pattern_type, rank)
-        self.mask, self.open_fraction = self._get_mask_pattern(padding)
+        self.mask, self.open_fraction = self._get_mask_pattern(self.padding)
         self.decoder = self._get_decoding_pattern()
 
         self.detector_image = None
@@ -47,7 +49,12 @@ class CodedMaskInterface:
         """Returns the detector image from the simulated sky image."""
 
         self.sky_image = sky_image
-        self.detector_image = correlate(self.mask, self.sky_image, mode='same')
+
+        if self.padding:
+            self.detector_image = correlate(self.mask, self.sky_image, mode=self._mode)
+        else:
+            zero_pad_mask = self._get_padded_array(self.basic_pattern)
+            self.detector_image = correlate(zero_pad_mask, self.sky_image, mode=self._mode)
 
         if detector_background_rate:
             self.detector_image += np.random.poisson(detector_background_rate,
@@ -59,7 +66,12 @@ class CodedMaskInterface:
     def decode(self) -> c.Sequence:
         """Returns the reconstructed sky image from the detector image."""
         
-        rec_sky = correlate(self.decoder, self.detector_image, mode='same')
+        if self.padding:
+            rec_sky = correlate(self.decoder, self.detector_image, mode=self._mode)
+        else:
+            zero_pad_decoder = self._get_padded_array(self.decoder)
+            rec_sky = correlate(zero_pad_decoder, self.detector_image, mode=self._mode)
+
         self.sky_reconstruction = rec_sky/self.mask.sum()
 
         return self.sky_reconstruction
@@ -90,12 +102,12 @@ class CodedMaskInterface:
 
     def _get_mask_pattern(self, padding) -> tuple[c.Sequence, float]:
 
-        if padding is not None:
-            pass
-
+        if padding:
+            mask = self._get_padded_array(self.basic_pattern, pad=True)
         else:
             mask = self.basic_pattern
-            open_fraction = mask.sum()/(mask.shape[0]*mask.shape[1])
+            
+        open_fraction = mask.sum()/(mask.shape[0]*mask.shape[1])
         
         return mask, open_fraction
 
@@ -106,6 +118,40 @@ class CodedMaskInterface:
         if self.mask_type.pattern_type == 'MURA': G[0, 0] = 1
 
         return G
+    
+    def _get_padded_array(self, array, pad=False) -> c.Sequence:
+
+        n, m = array.shape
+        padded_array = np.zeros((2*n - 1, 2*m - 1))
+        pad_n, pad_m = (n - 1)//2, (m - 1)//2
+
+        padded_array[pad_n : -pad_n, pad_m : -pad_m] = array
+        
+        if pad:
+            # top-left corner
+            padded_array[:pad_n, :pad_m] = array[-pad_n:, -pad_m:]
+            # top-central
+            padded_array[pad_n : -pad_n, :pad_m] = array[:, -pad_m:]
+            # top-right corner
+            padded_array[-pad_n:, :pad_m] = array[:pad_n, -pad_m:]
+
+            # mid-left
+            padded_array[:pad_n, pad_m : -pad_m] = array[-pad_n:, :]
+            # mid-right
+            padded_array[-pad_n:, pad_m : -pad_m] = array[:pad_n, :]
+
+            # bottom-left corner
+            padded_array[:pad_n, -pad_m:] = array[-pad_n:, :pad_m]
+            # bottom-central
+            padded_array[pad_n : -pad_n, -pad_m:] = array[:, :pad_m]
+            # bottom-right corner
+            padded_array[-pad_n:, -pad_m:] = array[:pad_n, :pad_m]
+        
+        return padded_array
+    
+    @property
+    def _mode(self):
+        return 'valid'
 
 
 # end

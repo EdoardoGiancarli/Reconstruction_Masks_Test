@@ -19,9 +19,6 @@ class TestCodedMaskInterface(TestCase):
     def setUp(self):
         self.cmi_ura = CodedMaskInterface('ura', 0)
         self.cmi_mura = CodedMaskInterface('mura', 0)
-        self.ura_cmi_dummy = CodedMaskInterface('ura', 0)
-        self.mura_cmi_dummy = CodedMaskInterface('mura', 0)
-        self.sky_image_dummy = np.random.randint(1, 11, (5, 3))
     
 
     def test_initialization(self):
@@ -38,9 +35,6 @@ class TestCodedMaskInterface(TestCase):
         self.assertTrue(0 < self.cmi_ura.open_fraction and self.cmi_ura.open_fraction < 1)
         np.testing.assert_array_equal(self.cmi_mura.mask, MURAMaskPattern(0).basic_pattern, strict=True)
         self.assertTrue(0 < self.cmi_mura.open_fraction and self.cmi_mura.open_fraction < 1)
-
-    def test_get_mask_pattern_padding(self):
-        pass
 
     def test_get_decoding_pattern(self):
         G_ura = 2*URAMaskPattern(0).basic_pattern - 1
@@ -72,19 +66,74 @@ class TestCodedMaskInterface(TestCase):
             self.cmi_mura.snr()
     
     def test_cai(self):
+        ura_cmi_dummy = CodedMaskInterface('ura', 0)
+        mura_cmi_dummy = CodedMaskInterface('mura', 0)
+        S_ura = np.random.randint(1, 11, (5, 3))
+        S_mura = np.random.randint(1, 11, (5, 5))
         # encoding
-        self.ura_cmi_dummy.encode(self.sky_image_dummy)
-        self.mura_cmi_dummy.encode(self.sky_image_dummy)
+        D_ura = ura_cmi_dummy.encode(S_ura)
+        D_mura = mura_cmi_dummy.encode(S_mura)
         # decoding
-        self.ura_cmi_dummy.decode()
-        self.mura_cmi_dummy.decode()
+        S_hat_ura = ura_cmi_dummy.decode()
+        S_hat_mura = mura_cmi_dummy.decode()
+        # sky and detector images shapes
+        self.assertEqual(D_ura.shape, S_ura.shape)
+        self.assertEqual(D_mura.shape, S_mura.shape)
+        self.assertEqual(S_hat_ura.shape, S_ura.shape)
+        self.assertEqual(S_hat_mura.shape, S_mura.shape)
         # SNR
-        self.ura_cmi_dummy.snr()
-        self.mura_cmi_dummy.snr()
+        ura_cmi_dummy.snr()
+        mura_cmi_dummy.snr()
         # attributes
         test_attr = ["sky_image_shape", "detector_image_shape", "sky_reconstruction_shape"]
-        _ = [getattr(self.ura_cmi_dummy, attr) for attr in test_attr]
-        _ = [getattr(self.mura_cmi_dummy, attr) for attr in test_attr]
+        _ = [getattr(ura_cmi_dummy, attr) for attr in test_attr]
+        _ = [getattr(mura_cmi_dummy, attr) for attr in test_attr]
+
+    def test_get_mask_pattern_padding(self):
+        # test padded mask shape
+        ura_cmi_dummy = CodedMaskInterface('ura', 2, True)
+        mura_cmi_dummy = CodedMaskInterface('mura', 2, True)
+        self.assertEqual(ura_cmi_dummy.basic_pattern_shape, (13, 11))
+        self.assertEqual(ura_cmi_dummy.mask_shape, (25, 21))
+        self.assertTrue(0 < ura_cmi_dummy.open_fraction and ura_cmi_dummy.open_fraction < 1)
+        self.assertEqual(mura_cmi_dummy.basic_pattern_shape, (17, 17))
+        self.assertEqual(mura_cmi_dummy.mask_shape, (33, 33))
+        self.assertTrue(0 < mura_cmi_dummy.open_fraction and mura_cmi_dummy.open_fraction < 1)
+        # test padded mask content
+        ura_cmi_dummy2 = CodedMaskInterface('ura', 0, True)
+        np.testing.assert_array_equal(ura_cmi_dummy2.mask, self._get_padded_mask())
+
+    def test_cai_padding(self):
+        ura_cmi_dummy = CodedMaskInterface('ura', 2, True)
+        mura_cmi_dummy = CodedMaskInterface('mura', 2, True)
+        S_ura = np.random.randint(1, 11, (13, 11))
+        S_mura = np.random.randint(1, 11, (17, 17))
+        # encoding
+        D_ura = ura_cmi_dummy.encode(S_ura)
+        D_mura = mura_cmi_dummy.encode(S_mura)
+        # decoding
+        S_hat_ura = ura_cmi_dummy.decode()
+        S_hat_mura = mura_cmi_dummy.decode()
+        # sky and detector images shapes
+        self.assertEqual(D_ura.shape, S_ura.shape)
+        self.assertEqual(D_mura.shape, S_mura.shape)
+        self.assertEqual(S_hat_ura.shape, S_ura.shape)
+        self.assertEqual(S_hat_mura.shape, S_mura.shape)
+        # SNR
+        ura_cmi_dummy.snr()
+        mura_cmi_dummy.snr()
+        # attributes
+        test_attr = ["sky_image_shape", "detector_image_shape", "sky_reconstruction_shape"]
+        _ = [getattr(ura_cmi_dummy, attr) for attr in test_attr]
+        _ = [getattr(mura_cmi_dummy, attr) for attr in test_attr]
+
+    def _get_padded_mask(self):
+        padded_mask = np.zeros((9, 5))
+        a, b = np.array([1, 1, 0, 1, 1]), np.array([0, 1, 1, 0, 1])
+        for i in range(9):
+            if i in [0, 4, 5]: padded_mask[i, :] = a
+            elif i in [1, 3, 6, 8]: padded_mask[i, :] = b
+        return padded_mask
 
 
 
