@@ -20,7 +20,8 @@ class URAMaskPattern:
     """Generates a 2D URA pattern for a coded mask camera."""
 
     def __init__(self, rank: int):
-        
+        # i don't get why taking a rank which is an arbitrary number,
+        # i think it would be better to just take the mask dimensions as inputs and validate them.
         self.pattern_type = 'URA'
         self.rank = rank
         self.prime_pair = self._get_prime_pair(rank)
@@ -29,7 +30,12 @@ class URAMaskPattern:
     
 
     def _get_prime_pair(self, rank) -> tuple[int, int]:
-
+        # it is ok to use assert here but only if you throw and error when the user
+        # sets a wrong rank parameter. assert is no substitute for `raise`.
+        # you use assert to explicitly state a piece of information which is assumed and known to be true,
+        # .e.g. invariants > https://en.wikipedia.org/wiki/Invariant_(mathematics)#Invariants_in_computer_science
+        # asserts are pieces of documentation.
+        # TODO: add rank validation at __init__
         assert rank >= 0, f"rank must be >= 0, got rank = {rank} instead."
 
         lim = 107
@@ -61,7 +67,9 @@ class URAMaskPattern:
     
 
     def _get_basic_pattern(self, C_r_i, C_s_j) -> c.Sequence:
-
+        # where does this recipe come from?
+        # TODO: test against the patterns from `bpops/codedapertures`
+        #       do patterns generated with this routine match?
         A = np.zeros(self.prime_pair)
 
         for i in range(self.prime_pair[0]):
@@ -117,7 +125,9 @@ class MURAMaskPattern:
     
 
     def _get_basic_pattern(self, C_r_i, C_s_j) -> c.Sequence:
-
+        # where does this recipe come from?
+        # TODO: test against the patterns from `bpops/codedapertures`
+        #       do patterns generated with this routine match?
         A = np.zeros((self.l, self.l))
 
         for i in range(self.l):

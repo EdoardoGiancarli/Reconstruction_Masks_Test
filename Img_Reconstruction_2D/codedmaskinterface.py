@@ -122,7 +122,8 @@ class CodedMaskInterface:
         return G
     
     def _get_padded_array(self, array, pad=False) -> c.Sequence:
-
+        # why this complicated code when you have can achieve the same in one line?
+        # TODO: pad using numpy's pad with `wrap` mode.
         n, m = array.shape
         padded_array = np.zeros((2*n - 1, 2*m - 1))
         pad_n, pad_m = (n - 1)//2, (m - 1)//2
