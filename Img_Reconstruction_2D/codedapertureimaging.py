@@ -66,12 +66,15 @@ def cai_simulation(pattern_type: str,
     source_info = {
         'sources_pos': sources_pos,
         'sources_transmitted_flux': cai.open_fraction*sources_flux,
-        'reconstructed_fluxes': _wrap_reconstructed_sources(sky_reconstruction, sources_pos),
+        'sky_image_fluxes': _wrap_sources(sky_image, sources_pos),
         'sky_image_shape': cai.sky_image_shape,
         'sky_image': sky_image,
         'sky_background': sky_background,
+        'reconstructed_fluxes': _wrap_sources(sky_reconstruction, sources_pos),
+        'coded_mask_interface': cai,
         'sky_reconstruction_SNR': cai.snr(),
         'mask_pattern': cai.mask,
+        'mask_decoder': cai.decoder,
         'mask_PSF': cai.psf()}
     
     # print mask info
@@ -81,18 +84,16 @@ def cai_simulation(pattern_type: str,
 
 
 def _print_info(obj) -> None:
-    print(f"Mask pattern type: {obj.pattern_type}\n",
-          f"Basic pattern shape: {obj.basic_pattern_shape}",
+    print(f"Mask pattern type: {obj.mask_type.pattern_type}\n",
+          f"Basic pattern shape: {obj.basic_pattern_shape}\n",
           f"Mask shape: {obj.mask_shape}\n",
           f"Decoder shape: {obj.decoder_shape}\n",
-          f"Detector image shape: {obj.detector_image_shape}",
+          f"Detector image shape: {obj.detector_image_shape}\n",
           f"Sky reconstruction image shape: {obj.sky_reconstruction_shape}")
 
-def _wrap_reconstructed_sources(
-        sky_reconstruction, sources_pos
-        ) -> c.Sequence:
-    reconstr_sources = np.array([sky_reconstruction[x[0], x[1]] for x in sources_pos])
-    return reconstr_sources
+def _wrap_sources(sky, sources_pos) -> c.Sequence:
+    sources = np.array([sky[x[0], x[1]] for x in sources_pos])
+    return sources
 
 
 # end

@@ -39,8 +39,8 @@ class TestCodedMaskInterface(TestCase):
     def test_get_decoding_pattern(self):
         G_ura = 2*URAMaskPattern(0).basic_pattern - 1
         G_mura = 2*MURAMaskPattern(0).basic_pattern - 1; G_mura[0, 0] = 1
-        np.testing.assert_array_equal(self.cmi_ura.decoder, G_ura, strict=False)
-        np.testing.assert_array_equal(self.cmi_mura.decoder, G_mura, strict=False)
+        np.testing.assert_array_equal(self.cmi_ura.decoder, G_ura/self.cmi_ura.basic_pattern.sum(), strict=False)
+        np.testing.assert_array_equal(self.cmi_mura.decoder, G_mura/self.cmi_mura.basic_pattern.sum(), strict=False)
 
     def test_cmi_properties(self):
         np.testing.assert_array_equal(self.cmi_ura.basic_pattern, URAMaskPattern(0).basic_pattern)

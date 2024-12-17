@@ -72,7 +72,7 @@ class CodedMaskInterface:
             zero_pad_decoder = self._get_padded_array(self.decoder)
             rec_sky = correlate(zero_pad_decoder, self.detector_image, mode=self._mode)
 
-        self.sky_reconstruction = rec_sky/self.mask.sum()
+        self.sky_reconstruction = rec_sky
 
         return self.sky_reconstruction
     
@@ -116,6 +116,8 @@ class CodedMaskInterface:
         G = 2*self.mask - 1
 
         if self.mask_type.pattern_type == 'MURA': G[0, 0] = 1
+
+        G /= self.basic_pattern.sum()
 
         return G
     
