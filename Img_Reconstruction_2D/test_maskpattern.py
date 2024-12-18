@@ -29,11 +29,9 @@ class TestURAMaskPattern(TestCase):
         self.assertEqual(self.ura._get_prime_pair(1), (7, 5))
         self.assertEqual(self.ura._get_prime_pair(2), (13, 11))
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             URAMaskPattern(rank=-4)
             self.ura._get_prime_pair(-3)
-        
-        with self.assertRaises(ValueError):
             self.ura._get_prime_pair(100)
     
     def test_get_pattern_root(self):
@@ -54,6 +52,12 @@ class TestURAMaskPattern(TestCase):
         basic_pattern_rank = np.linalg.matrix_rank(self.ura.basic_pattern)
         self.assertEqual(basic_pattern_rank, 2,
                          "The basic pattern matrix is not URA.")
+        
+        self.assertEqual(self.ura.basic_decoder.shape, self.ura.basic_pattern.shape)
+        self.assertEqual(self.ura.basic_decoder[0, 0], -1/self.ura.basic_pattern.sum())
+        self.assertEqual(self.ura.basic_decoder[1, 1], 1/self.ura.basic_pattern.sum())
+        decoder_rank = np.linalg.matrix_rank(self.ura.basic_decoder)
+        self.assertEqual(decoder_rank, 3)
 
 
 
@@ -95,6 +99,12 @@ class TestMURAMaskPattern(TestCase):
         basic_pattern_rank = np.linalg.matrix_rank(self.mura.basic_pattern)
         self.assertEqual(basic_pattern_rank, 2,
                          "The basic pattern matrix is not MURA.")
+        
+        self.assertEqual(self.mura.basic_decoder.shape, self.mura.basic_pattern.shape)
+        self.assertEqual(self.mura.basic_decoder[0, 0], 1/self.mura.basic_pattern.sum())
+        self.assertEqual(self.mura.basic_decoder[1, 1], 1/self.mura.basic_pattern.sum())
+        decoder_rank = np.linalg.matrix_rank(self.mura.basic_decoder)
+        self.assertEqual(decoder_rank, 3)
 
 
 

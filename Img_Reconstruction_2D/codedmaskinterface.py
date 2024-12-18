@@ -22,8 +22,7 @@ class CodedMaskInterface:
         
         self.padding = padding
         self.mask_type = self._get_mask_type(pattern_type, rank)
-        self.mask, self.open_fraction = self._get_mask_pattern(self.padding)
-        self.decoder = self._get_decoding_pattern()
+        self.mask, self.decoder, self.open_fraction = self._get_mask_pattern(self.padding)
 
         self.detector_image = None
         self.sky_reconstruction = None
@@ -32,6 +31,7 @@ class CodedMaskInterface:
         attribute_map = {"basic_pattern": lambda: self.mask_type.basic_pattern,
                          "basic_pattern_shape": lambda: self.mask_type.basic_pattern.shape,
                          "mask_shape": lambda: self.mask.shape,
+                         "basic_decoder": lambda: self.mask_type.basic_decoder,
                          "decoder_shape": lambda: self.decoder.shape,
                          "sky_image_shape": lambda: self.sky_image.shape,
                          "detector_image_shape": lambda: self.detector_image.shape,
@@ -67,20 +67,20 @@ class CodedMaskInterface:
         """Returns the reconstructed sky image from the detector image."""
         
         if self.padding:
-            rec_sky = correlate(self.decoder, self.detector_image, mode=self._mode)
+            self.sky_reconstruction = correlate(self.decoder, self.detector_image, mode=self._mode)
         else:
             zero_pad_decoder = self._get_padded_array(self.decoder)
-            rec_sky = correlate(zero_pad_decoder, self.detector_image, mode=self._mode)
-
-        self.sky_reconstruction = rec_sky
+            self.sky_reconstruction = correlate(zero_pad_decoder, self.detector_image, mode=self._mode)
 
         return self.sky_reconstruction
     
 
-    def psf(self):
+    def psf(self) -> c.Sequence:
         """Returns the mask PSF."""
 
-        return correlate(self.decoder, self.mask, mode='same')
+        decoder = self.decoder if self.padding else self._get_padded_array(self.decoder, mode='wrap')
+
+        return correlate(decoder, self.basic_pattern, mode=self._mode)
     
 
     def snr(self) -> c.Sequence:
@@ -103,51 +103,50 @@ class CodedMaskInterface:
     def _get_mask_pattern(self, padding) -> tuple[c.Sequence, float]:
 
         if padding:
-            mask = self._get_padded_array(self.basic_pattern, pad=True)
+            mask = self._get_padded_array(self.basic_pattern, mode='wrap')
+            decoder = self._get_padded_array(self.basic_decoder, mode='wrap')
         else:
             mask = self.basic_pattern
+            decoder = self.basic_decoder
             
         open_fraction = mask.sum()/(mask.shape[0]*mask.shape[1])
         
-        return mask, open_fraction
-
-    def _get_decoding_pattern(self) -> c.Sequence:
-        
-        G = 2*self.mask - 1
-
-        if self.mask_type.pattern_type == 'MURA': G[0, 0] = 1
-
-        G /= self.basic_pattern.sum()
-
-        return G
+        return mask, decoder, open_fraction
     
-    def _get_padded_array(self, array, pad=False) -> c.Sequence:
+    def _get_padded_array(self, array, mode='zero') -> c.Sequence:
 
         n, m = array.shape
-        padded_array = np.zeros((2*n - 1, 2*m - 1))
         pad_n, pad_m = (n - 1)//2, (m - 1)//2
 
-        padded_array[pad_n : -pad_n, pad_m : -pad_m] = array
+        if mode not in ['zero', 'wrap']:
+            raise ValueError(f"invalid mode {mode}. Mode must be 'zero' or 'wrap'.")
         
-        if pad:
-            # top-left corner
-            padded_array[:pad_n, :pad_m] = array[-pad_n:, -pad_m:]
-            # top-central
-            padded_array[pad_n : -pad_n, :pad_m] = array[:, -pad_m:]
-            # top-right corner
-            padded_array[-pad_n:, :pad_m] = array[:pad_n, -pad_m:]
+        elif mode == 'zero':
+            padded_array = np.pad(array, pad_width=((pad_n, pad_n), (pad_m, pad_m)))
+        
+        else:
+            padded_array = np.pad(array, pad_width=((pad_n, pad_n), (pad_m, pad_m)), mode='wrap')
 
-            # mid-left
-            padded_array[:pad_n, pad_m : -pad_m] = array[-pad_n:, :]
-            # mid-right
-            padded_array[-pad_n:, pad_m : -pad_m] = array[:pad_n, :]
-
-            # bottom-left corner
-            padded_array[:pad_n, -pad_m:] = array[-pad_n:, :pad_m]
-            # bottom-central
-            padded_array[pad_n : -pad_n, -pad_m:] = array[:, :pad_m]
-            # bottom-right corner
-            padded_array[-pad_n:, -pad_m:] = array[:pad_n, :pad_m]
+        # deprecated
+        #flag=False
+        #if flag:
+        #    padded_array[pad_n : -pad_n, pad_m : -pad_m] = array
+        #    # top-left corner
+        #    padded_array[:pad_n, :pad_m] = array[-pad_n:, -pad_m:]
+        #    # top-central
+        #    padded_array[pad_n : -pad_n, :pad_m] = array[:, -pad_m:]
+        #    # top-right corner
+        #    padded_array[-pad_n:, :pad_m] = array[:pad_n, -pad_m:]
+        #    # mid-left
+        #    padded_array[:pad_n, pad_m : -pad_m] = array[-pad_n:, :]
+        #    # mid-right
+        #    padded_array[-pad_n:, pad_m : -pad_m] = array[:pad_n, :]
+        #    # bottom-left corner
+        #    padded_array[:pad_n, -pad_m:] = array[-pad_n:, :pad_m]
+        #    # bottom-central
+        #    padded_array[pad_n : -pad_n, -pad_m:] = array[:, :pad_m]
+        #    # bottom-right corner
+        #    padded_array[-pad_n:, -pad_m:] = array[:pad_n, :pad_m]
         
         return padded_array
     

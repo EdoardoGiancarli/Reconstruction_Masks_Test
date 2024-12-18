@@ -22,15 +22,19 @@ class URAMaskPattern:
     def __init__(self, rank: int):
         
         self.pattern_type = 'URA'
+        if rank < 0:
+            raise ValueError(f"rank must be >= 0, got rank = {rank} instead.")
         self.rank = rank
+
         self.prime_pair = self._get_prime_pair(rank)
         C_r_i, C_s_j = self._get_pattern_root()
         self.basic_pattern = self._get_basic_pattern(C_r_i, C_s_j)
+        self.basic_decoder = self._get_decoder()
     
 
     def _get_prime_pair(self, rank) -> tuple[int, int]:
 
-        assert rank >= 0, f"rank must be >= 0, got rank = {rank} instead."
+        assert rank >= 0
 
         lim = 107
         primes = list(primerange(2, lim))
@@ -73,6 +77,14 @@ class URAMaskPattern:
                 else: A[i,j] = 0
         
         return A
+    
+
+    def _get_decoder(self) -> c.Sequence:
+
+        G = 2*self.basic_pattern - 1
+        G /= self.basic_pattern.sum()
+
+        return G
 
 
 
@@ -87,6 +99,7 @@ class MURAMaskPattern:
         self.l = self._get_prime(rank)
         C_r_i, C_s_j = self._get_pattern_root()
         self.basic_pattern = self._get_basic_pattern(C_r_i, C_s_j)
+        self.basic_decoder = self._get_decoder()
     
 
     def _get_prime(self, rank) -> int:
@@ -128,6 +141,15 @@ class MURAMaskPattern:
                 elif C_r_i[i]*C_s_j[j] == 1: A[i,j] = 1
         
         return np.transpose(A)
+    
+
+    def _get_decoder(self) -> c.Sequence:
+
+        G = 2*self.basic_pattern - 1
+        G[0, 0] = 1
+        G /= self.basic_pattern.sum()
+
+        return G
 
 
 # end

@@ -26,7 +26,7 @@ class TestCodedMaskInterface(TestCase):
         self.assertEqual(self.cmi_mura.mask_type.pattern_type, "MURA")
 
     def test_get_mask_type(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             self.assertEqual(self.cmi_ura._get_mask_type('ura', -2))
             self.assertEqual(self.cmi_ura._get_mask_type('mura', -2))
 
@@ -35,12 +35,8 @@ class TestCodedMaskInterface(TestCase):
         self.assertTrue(0 < self.cmi_ura.open_fraction and self.cmi_ura.open_fraction < 1)
         np.testing.assert_array_equal(self.cmi_mura.mask, MURAMaskPattern(0).basic_pattern, strict=True)
         self.assertTrue(0 < self.cmi_mura.open_fraction and self.cmi_mura.open_fraction < 1)
-
-    def test_get_decoding_pattern(self):
-        G_ura = 2*URAMaskPattern(0).basic_pattern - 1
-        G_mura = 2*MURAMaskPattern(0).basic_pattern - 1; G_mura[0, 0] = 1
-        np.testing.assert_array_equal(self.cmi_ura.decoder, G_ura/self.cmi_ura.basic_pattern.sum(), strict=False)
-        np.testing.assert_array_equal(self.cmi_mura.decoder, G_mura/self.cmi_mura.basic_pattern.sum(), strict=False)
+        np.testing.assert_array_equal(self.cmi_ura.decoder, URAMaskPattern(0).basic_decoder, strict=True)
+        np.testing.assert_array_equal(self.cmi_mura.decoder, MURAMaskPattern(0).basic_decoder, strict=True)
 
     def test_cmi_properties(self):
         np.testing.assert_array_equal(self.cmi_ura.basic_pattern, URAMaskPattern(0).basic_pattern)
