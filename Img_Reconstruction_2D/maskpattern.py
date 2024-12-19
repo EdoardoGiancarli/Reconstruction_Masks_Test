@@ -22,8 +22,8 @@ class URAMaskPattern:
     def __init__(self, rank: int):
         
         self.pattern_type = 'URA'
-        if rank < 0:
-            raise ValueError(f"rank must be >= 0, got rank = {rank} instead.")
+
+        if rank < 0: raise ValueError(f"rank must be >= 0, got rank = {rank} instead.")
         self.rank = rank
 
         self.prime_pair = self._get_prime_pair(rank)
@@ -53,6 +53,9 @@ class URAMaskPattern:
     def _get_pattern_root(self) -> tuple[c.Sequence, c.Sequence]:
 
         r, s = self.prime_pair
+        assert isprime(r)
+        assert isprime(s)
+
         C_r_i = np.zeros(r) - 1
         C_s_j = np.zeros(s) - 1
 
@@ -84,6 +87,8 @@ class URAMaskPattern:
         G = 2*self.basic_pattern - 1
         G /= self.basic_pattern.sum()
 
+        assert G.shape == self.basic_pattern.shape
+
         return G
 
 
@@ -95,7 +100,10 @@ class MURAMaskPattern:
     def __init__(self, rank: int):
         
         self.pattern_type = 'MURA'
+
         self.rank = rank
+        if rank < 0: raise ValueError(f"rank must be >= 0, got rank = {rank} instead.")
+
         self.l = self._get_prime(rank)
         C_r_i, C_s_j = self._get_pattern_root()
         self.basic_pattern = self._get_basic_pattern(C_r_i, C_s_j)
@@ -104,7 +112,7 @@ class MURAMaskPattern:
 
     def _get_prime(self, rank) -> int:
 
-        assert rank >= 0, f"rank must be >= 0, got rank {rank} instead."
+        assert rank >= 0
         m, this_rank = 1, -1
 
         while True:
@@ -117,6 +125,8 @@ class MURAMaskPattern:
     
 
     def _get_pattern_root(self) -> tuple[c.Sequence, c.Sequence]:
+        
+        assert isprime(self.l)
 
         C_r_i = np.zeros(self.l) - 1
         C_s_j = np.zeros(self.l) - 1
@@ -148,6 +158,8 @@ class MURAMaskPattern:
         G = 2*self.basic_pattern - 1
         G[0, 0] = 1
         G /= self.basic_pattern.sum()
+
+        assert G.shape == self.basic_pattern.shape
 
         return G
 

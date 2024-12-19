@@ -49,6 +49,7 @@ class CodedMaskInterface:
         """Returns the detector image from the simulated sky image."""
 
         self.sky_image = sky_image
+        assert self.sky_image_shape == self.basic_pattern_shape
 
         if self.padding:
             self.detector_image = correlate(self.mask, self.sky_image, mode=self._mode)
@@ -59,6 +60,8 @@ class CodedMaskInterface:
         if detector_background_rate:
             self.detector_image += np.random.poisson(detector_background_rate,
                                                      self.detector_image.shape)
+        
+        assert self.detector_image_shape == self.basic_pattern_shape
         
         return self.detector_image
 
@@ -71,6 +74,8 @@ class CodedMaskInterface:
         else:
             zero_pad_decoder = self._get_padded_array(self.decoder)
             self.sky_reconstruction = correlate(zero_pad_decoder, self.detector_image, mode=self._mode)
+        
+        assert self.sky_reconstruction_shape == self.sky_image_shape 
 
         return self.sky_reconstruction
     
@@ -98,6 +103,8 @@ class CodedMaskInterface:
         else:
             mask_pattern = MURAMaskPattern(rank)
         
+        assert mask_pattern.pattern_type == pattern_type.upper()
+        
         return mask_pattern
 
     def _get_mask_pattern(self, padding) -> tuple[c.Sequence, float]:
@@ -109,7 +116,7 @@ class CodedMaskInterface:
             mask = self.basic_pattern
             decoder = self.basic_decoder
             
-        open_fraction = mask.sum()/(mask.shape[0]*mask.shape[1])
+        open_fraction = mask.sum()/np.prod(mask.shape)
         
         return mask, decoder, open_fraction
     
@@ -126,6 +133,8 @@ class CodedMaskInterface:
         
         else:
             padded_array = np.pad(array, pad_width=((pad_n, pad_n), (pad_m, pad_m)), mode='wrap')
+        
+        assert padded_array.shape == (2*n -1, 2*m - 1)
 
         # deprecated
         #flag=False

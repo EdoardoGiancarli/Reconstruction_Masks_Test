@@ -77,7 +77,7 @@ class TestMURAMaskPattern(TestCase):
         self.assertEqual(self.mura._get_prime(1), 13)
         self.assertEqual(self.mura._get_prime(2), 17)
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             MURAMaskPattern(rank=-4)
             self.mura._get_prime(-3)
     
