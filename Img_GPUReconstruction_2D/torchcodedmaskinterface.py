@@ -52,20 +52,14 @@ class CodedMaskInterface:
         assert self.sky_image_shape == self.basic_pattern_shape
 
         if self.padding:
-            self.detector_image = conv2d(self.mask.reshape(1, 1, *self.mask_shape),
-                                         self.sky_image.reshape(1, 1, *self.sky_image_shape))
-            #self.detector_image = fftconvolve(self.mask, self.sky_image.flip(1), mode=self._mode)
+            self.detector_image = self._correlation(self.mask, self.sky_image)
         else:
-            zero_pad_mask = self._get_padded_tensor(self.basic_pattern).reshape(1, 1, *zero_pad_mask.size())
-            self.detector_image = conv2d(zero_pad_mask, self.sky_image.reshape(1, 1, *self.sky_image.size()))
-            #self.detector_image = fftconvolve(zero_pad_mask, self.sky_image.flip(1), mode=self._mode)
-            
-        self.detector_image = self.detector_image.squeeze(0, 1)
+            zero_pad_mask = self._get_padded_tensor(self.basic_pattern)
+            self.detector_image = self._correlation(zero_pad_mask, self.sky_image)
 
         if detector_background_rate:
-            assert type(detector_background_rate) == float
-            rates = torch.full(self.detector_image_shape, detector_background_rate)
-            self.detector_image += torch.poisson(rates).int()
+            rates = torch.full(self.detector_image_shape, detector_background_rate).float()
+            self.detector_image += torch.poisson(rates)
         
         assert self.detector_image_shape == self.basic_pattern_shape
         
@@ -76,30 +70,25 @@ class CodedMaskInterface:
         """Returns the reconstructed sky image from the detector image."""
         
         if self.padding:
-            self.sky_reconstruction = conv2d(self.decoder.reshape(1, 1, *self.decoder),
-                                             self.detector_image.reshape(1, 1, *self.detector_image_shape))
-            #self.sky_reconstruction = fftconvolve(self.decoder, self.detector_image.flip(1), mode=self._mode)
+            self.sky_reconstruction = self._correlation(self.decoder, self.detector_image)
         else:
-            zero_pad_decoder = self._get_padded_tensor(self.decoder).reshape(1, 1, *zero_pad_decoder.size())
-            self.sky_reconstruction = conv2d(zero_pad_decoder, self.detector_image.reshape(1, 1, *self.detector_image_shape))
-            #self.sky_reconstruction = fftconvolve(zero_pad_decoder, self.detector_image.flip(1), mode=self._mode)
+            zero_pad_decoder = self._get_padded_tensor(self.decoder)
+            self.sky_reconstruction = self._correlation(zero_pad_decoder, self.detector_image)
         
-        assert self.sky_reconstruction_shape.squeeze(0, 1) == self.sky_image_shape 
+        assert self.sky_reconstruction_shape == self.sky_image_shape 
 
-        return self.sky_reconstruction.squeeze(0, 1)
+        return self.sky_reconstruction
     
 
     def psf(self) -> torch.tensor:
         """Returns the mask PSF."""
 
         pad_decoder = self.decoder if self.padding else self._get_padded_tensor(self.decoder, mode='wrap')
-        torch_psf = conv2d(pad_decoder.reshape(1, 1, *pad_decoder.size()),
-                           self.basic_pattern.reshape(1, 1, *self.basic_pattern_shape))
+        torch_psf = self._correlation(pad_decoder, self.basic_pattern)
         
-        assert len(torch_psf.squeeze(0, 1).size()) == 2
+        assert torch_psf.size() == self.basic_pattern_shape
 
-        #return fftconvolve(pad_decoder, self.basic_pattern.flip(1), mode=self._mode)
-        return torch_psf.squeeze(0, 1)
+        return torch_psf
     
 
     def snr(self) -> torch.tensor:
@@ -153,6 +142,14 @@ class CodedMaskInterface:
         assert padded_tensor.squeeze(0, 1).size() == (2*n - 1, 2*m - 1)
 
         return padded_tensor.squeeze(0, 1)
+    
+    def _correlation(self,
+                     A: torch.tensor,
+                     B: torch.tensor) -> torch.tensor:
+        
+        C = conv2d(A.reshape(1, 1, *A.size()).float(), B.reshape(1, 1, *B.size()).float())
+
+        return C.squeeze(0, 1)
 
 
 # end

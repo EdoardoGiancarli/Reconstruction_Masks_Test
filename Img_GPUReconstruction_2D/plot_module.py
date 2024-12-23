@@ -73,7 +73,7 @@ def sequence_plot(input_sequence: list[c.Sequence],
         
         offsetx = 1
         ax.set_xlim(phase[0] - offsetx, phase[-1] + offsetx)
-        ax.set_ylim(np.min(input_sequence[i]) - 1, np.max(input_sequence[i]) + 1)
+        ax.set_ylim(input_sequence[i].min() - 1, input_sequence[i].max() + 1)
 
         # styling
         _handle_labels(ax, xlabel[i], ylabel[i], title[i])
