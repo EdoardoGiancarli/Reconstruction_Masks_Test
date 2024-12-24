@@ -40,7 +40,7 @@ class URAMaskPattern:
 
         assert rank >= 0
 
-        lim = 107
+        lim = int(1e4)
         primes = list(primerange(2, lim))
         p1, this_rank = primes[0], -1
 

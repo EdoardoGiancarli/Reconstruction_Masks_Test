@@ -24,8 +24,8 @@ class CodedMaskInterface:
         self.mask_type = self._get_mask_type(pattern_type, rank)
         self.mask, self.decoder, self.open_fraction = self._get_mask_pattern(self.padding)
 
-        self.detector_image = None
-        self.sky_reconstruction = None
+        self.detector_image = torch.zeros(*self.basic_pattern_shape)
+        self.sky_reconstruction = torch.zeros(*self.basic_pattern_shape)
     
     def __getattr__(self, name):
         attribute_map = {"basic_pattern": lambda: self.mask_type.basic_pattern,
@@ -93,6 +93,8 @@ class CodedMaskInterface:
 
     def snr(self) -> torch.tensor:
         """Returns the SNR for the reconstructed image."""
+
+        assert torch.abs(self.sky_reconstruction.sum()) > 0
 
         return self.sky_reconstruction/torch.sqrt(torch.abs(self.sky_reconstruction.sum()))
     

@@ -88,7 +88,9 @@ def image_plot(input_image: list[c.Sequence],
                ylabel: list[str] = None,
                cbarlabel: list[str] = None,
                cbarvalues: list[c.Sequence] = None,
-               cbarcmap: list = None) -> None:
+               cbarcmap: list = None,
+               simulated_sources: list[c.Sequence[int, int]] = None,
+               ) -> None:
     """Plot(s) of the input 2D array(s)."""
 
     # number of plots
@@ -98,6 +100,7 @@ def image_plot(input_image: list[c.Sequence],
     xlabel, ylabel = xlabel or [None]*n, ylabel or [None]*n
     cbarlabel, cbarvalues = cbarlabel or [None]*n, cbarvalues or [None]*n
     cbarcmap = cbarcmap or [ListedColormap(["DeepPink", "Orange"])]*n
+    simulated_sources = simulated_sources or [None]*n
 
     # create subplots
     fig, axes = _handle_subplots(n, 0.35)
@@ -109,11 +112,16 @@ def image_plot(input_image: list[c.Sequence],
             raise ValueError(f"Invalid input_image for plot {i}. Must be a 2D array.")
 
         # plot
-        img = ax.imshow(input_image[i], cmap=cbarcmap[i], origin='lower')
+        img = ax.imshow(input_image[i], cmap=cbarcmap[i])
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="7%", pad=0.15)
         cbar = fig.colorbar(img, cax=cax, ax=ax, orientation='vertical',
                             ticks=cbarvalues[i] or None)
+        
+        if simulated_sources[i] is not None:
+            for j, k in simulated_sources[i]:
+                ax.scatter(k, j, marker='o', linewidths=1.5, facecolor='None',
+                           edgecolor='white', s=25, alpha=0.8)
 
         if cbarlabel[i]:
             cbar.set_label(cbarlabel[i], fontsize=labelsize, fontweight='bold')
@@ -167,7 +175,7 @@ def _show_sources_pos(ax, reconstr_sources, simulated_sources):
             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round, pad=0.25'))
 
     ax.scatter(idx, reconstr_sources[idx], marker='s', c='DeepSkyBlue',
-                linewidths=2, edgecolor='b', s=40, alpha=0.8)
+               linewidths=2, edgecolor='b', s=40, alpha=0.8)
 
 def _test():
     """Tests plot functions."""

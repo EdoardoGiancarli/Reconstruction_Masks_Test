@@ -54,11 +54,13 @@ class TestCodedMaskInterface(TestCase):
             _ = [getattr(self.cmi_mura, attr) for attr in test_attr[-4:]]
 
     def test_psf(self):
-        self.cmi_ura.psf()
-        self.cmi_mura.psf()
+        urapsf = self.cmi_ura.psf()
+        murapsf = self.cmi_mura.psf()
+        self.assertTrue(torch.abs(urapsf.sum() - 1) < 1e-6)
+        self.assertTrue(torch.abs(murapsf.sum() - 1) < 1e-6)
 
     def test_SNR(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(AssertionError):
             self.cmi_ura.snr()
             self.cmi_mura.snr()
     
