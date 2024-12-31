@@ -127,6 +127,8 @@ def image_plot(input_image: list[c.Sequence],
             cbar.set_label(cbarlabel[i], fontsize=labelsize, fontweight='bold')
         cbar.ax.tick_params(labelsize=labelsize-1)
 
+        ax.set_facecolor('lightgray')
+
         # styling
         _handle_labels(ax, xlabel[i], ylabel[i], title[i])
         _handle_ticks(ax)
