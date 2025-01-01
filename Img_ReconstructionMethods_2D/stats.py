@@ -37,8 +37,11 @@ def significance(n, b):
 
 
 def enhance_skyrec_slices(sky_reconstruction, sources_pos):
-    center = (len(sky_reconstruction)//2, len(sky_reconstruction)//2)
+    u, v = sky_reconstruction.shape
+    center = (u//2, v//2)
     pos_wrt_center = [(pos[0] - center[0], pos[1] - center[1]) for _, pos in enumerate(sources_pos)]
+    
+    n, m = (u + 2)//3, (v + 2)//3    # FCFOV shape
 
     for idx, pos in enumerate(sources_pos):
         S_hat_slicex = sky_reconstruction[pos[0], :]
@@ -50,9 +53,10 @@ def enhance_skyrec_slices(sky_reconstruction, sources_pos):
             zone = " (PCFOV)"
 
         plot.sequence_plot([S_hat_slicex, S_hat_slicey],
-                        [f"$\\hat{{S}}_{idx}$ x-axis slice" + zone, f"$\\hat{{S}}_{idx}$ y-axis slice" + zone],
-                        style=["bar"]*2,
-                        simulated_sources=[(pos[1], *pos, -10), (pos[0], *pos, -10)])
+                           [f"$\\hat{{S}}_{idx}$ x-axis slice" + zone, f"$\\hat{{S}}_{idx}$ y-axis slice" + zone],
+                           style=["bar"]*2,
+                           simulated_sources=[(pos[1], *pos, -S_hat_slicex[pos[1]]//5),
+                                              (pos[0], *pos, -S_hat_slicey[pos[0]]//5)])
 
 
 # end

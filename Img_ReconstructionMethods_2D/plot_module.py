@@ -120,8 +120,8 @@ def image_plot(input_image: list[c.Sequence],
         
         if simulated_sources[i] is not None:
             for j, k in simulated_sources[i]:
-                ax.scatter(k, j, marker='o', linewidths=1.5, facecolor='None',
-                           edgecolor='white', s=25, alpha=0.8)
+                ax.scatter(k, j, marker='o', linewidths=1.75, facecolor='None',
+                           edgecolor='white', s=35, alpha=0.8)
 
         if cbarlabel[i]:
             cbar.set_label(cbarlabel[i], fontsize=labelsize, fontweight='bold')
