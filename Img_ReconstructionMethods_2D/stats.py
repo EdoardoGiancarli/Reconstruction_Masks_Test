@@ -15,6 +15,8 @@
 
 
 import collections.abc as c
+import warnings
+
 import numpy as np
 from scipy.signal import correlate
 import plot_module as plot
@@ -25,14 +27,18 @@ def variance(decoder, detector_image):
 
 
 
-def snr(decoder, detector_image, sky_reconstruction):
-    var = variance(decoder, detector_image)
-    return sky_reconstruction/np.sqrt(var)
+def snr(sky_reconstruction, sky_reconstruction_var):
+    return sky_reconstruction/np.sqrt(sky_reconstruction_var)
 
 
 
-def significance(n, b):
-    return np.sqrt(2 * (n * np.log(n / b) - (n - b)))
+def significance(sky_image,
+                 sky_background_rate):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        s = np.sqrt(2*(sky_image*np.log(sky_image/sky_background_rate) - (sky_image - sky_background_rate)))
+
+    return np.nan_to_num(s)
 
 
 
@@ -55,8 +61,8 @@ def enhance_skyrec_slices(sky_reconstruction, sources_pos):
         plot.sequence_plot([S_hat_slicex, S_hat_slicey],
                            [f"$\\hat{{S}}_{idx}$ x-axis slice" + zone, f"$\\hat{{S}}_{idx}$ y-axis slice" + zone],
                            style=["bar"]*2,
-                           simulated_sources=[(pos[1], *pos, -S_hat_slicex[pos[1]]//5),
-                                              (pos[0], *pos, -S_hat_slicey[pos[0]]//5)])
+                           simulated_sources=[(pos[1], *pos, -S_hat_slicex[pos[1]]//7),
+                                              (pos[0], *pos, -S_hat_slicey[pos[0]]//7)])
 
 
 # end
