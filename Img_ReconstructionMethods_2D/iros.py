@@ -48,9 +48,10 @@ class _support:
                        show_peaks: bool) -> np.array:
 
         peaks_pos = np.argwhere(snr > self.threshold).T
+        _n_peaks = len(peaks_pos[0])
 
         print(
-            f"Number of outliers with SNR(σ) over {self.threshold} at iteration {iteration}: {len(peaks_pos[0])}"
+            f"Number of outliers with SNR(σ) over {self.threshold} at iteration {iteration}: {_n_peaks}"
             )
         
         if show_peaks:
@@ -64,7 +65,21 @@ class _support:
 
         assert snr[*loc] == snr.max()
         
-        return loc
+        return loc, _n_peaks
+    
+    def _check_peaks(self, n: int) -> bool:
+        check = n != 0
+        return check
+    
+    def _record_source(self,
+                       sources_log: dict,
+                       pos: np.array,
+                       counts: int | float) -> dict:
+        
+        sources_log['sources_pos'].append(pos.T[0])
+        sources_log['sources_counts'].append(counts[0])
+
+        return sources_log
     
     def _show_results(self,
                       skyrec: np.array,
@@ -78,11 +93,13 @@ class _support:
         
         plot.image_plot([self.skyrec_zero, post_skyrec],
                         ["Sky Reconstruction", f"SkyRec IROS, iter. {iteration}"],
+                        cbarlabel=["counts", "counts"],
                         cbarcmap=["inferno"]*2,
                         simulated_sources=[self.source_pos]*2)
 
         plot.image_plot([snr, self.skyrec_zero - post_skyrec],
                         [f"IROS iter. {iteration} SNR", f"Residues: SkyRec - IROS{iteration}"],
+                        cbarlabel=["counts", "counts"],
                         cbarcmap=["inferno"]*2,
                         simulated_sources=[self.source_pos]*2)
     
@@ -145,6 +162,9 @@ class IROS(_support):
         n, m = detector_image.shape
         self.h, self.v = n - 1, m - 1
         self.sky_shape = (n + 2*self.h, m + 2*self.v)
+
+        self.sources_dataset = {'sources_pos': [],
+                                'sources_counts': []}
     
 
     def iterate(self,
@@ -158,15 +178,24 @@ class IROS(_support):
             if check_snr_norm:
                 self._check_snr_norm(i + 1, self.snr)
             
-            loc = self._select_source(self.snr, i + 1, show_peaks)
-            shadow = self.shadowgram(loc, self.skyrec[*loc])
-            self.detector_image, self.skyrec, self.snr = self.iros_application(self.detector_image,
-                                                                               shadow)
+            loc, _n_peaks = self._select_source(self.snr, i + 1, show_peaks)
+
+            if self._check_peaks(_n_peaks):
+                self.sources_dataset = self._record_source(self.sources_dataset,
+                                                           loc, self.skyrec[*loc])
+
+                shadow = self.shadowgram(loc, self.skyrec[*loc])
+                self.detector_image, self.skyrec, self.snr = self.iros_application(self.detector_image,
+                                                                                shadow)
+                
+                if show_results:
+                    self._show_results(self.skyrec, self.snr, i + 1)
             
-            if show_results:
-                self._show_results(self.skyrec, self.snr, i + 1)
-        
-        return self.skyrec, self.snr
+            else:
+                print("No sources detected with SNR over selected threshold...")
+                break
+            
+        return self.sources_dataset, self.skyrec, self.snr
 
 
 # end
