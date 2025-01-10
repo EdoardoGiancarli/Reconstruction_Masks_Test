@@ -58,7 +58,7 @@ class _support:
             plot.image_plot([snr],
                             [f"SkyRec Peaks with SNR $\geq$ {self.threshold}"],
                             cbarlabel=["SNR"],
-                            cbarcmap=["inferno"],
+                            cbarcmap=[self._cmap],
                             simulated_sources=[np.dstack((peaks_pos[0], peaks_pos[1]))[0]])
         
         loc = np.argwhere(snr == snr.max()).T
@@ -94,13 +94,13 @@ class _support:
         plot.image_plot([self.skyrec_zero, post_skyrec],
                         ["Sky Reconstruction", f"SkyRec IROS, iter. {iteration}"],
                         cbarlabel=["counts", "counts"],
-                        cbarcmap=["inferno"]*2,
+                        cbarcmap=[self._cmap]*2,
                         simulated_sources=[self.source_pos]*2)
 
         plot.image_plot([snr, self.skyrec_zero - post_skyrec],
                         [f"IROS iter. {iteration} SNR", f"Residues: SkyRec - IROS{iteration}"],
                         cbarlabel=["counts", "counts"],
-                        cbarcmap=["inferno"]*2,
+                        cbarcmap=[self._cmap]*2,
                         simulated_sources=[self.source_pos]*2)
     
     def _check_snr_norm(self,
@@ -131,6 +131,10 @@ class _support:
         post_skyrec_zero[self.skyrec > self.vis_thres] = 0
         post_skyrec_zero[self.skyrec < -self.vis_thres] = 0
         return post_skyrec_zero
+    
+    @property
+    def _cmap(self):
+        return "viridis"
 
 
 
@@ -186,7 +190,7 @@ class IROS(_support):
 
                 shadow = self.shadowgram(loc, self.skyrec[*loc])
                 self.detector_image, self.skyrec, self.snr = self.iros_application(self.detector_image,
-                                                                                shadow)
+                                                                                   shadow)
                 
                 if show_results:
                     self._show_results(self.skyrec, self.snr, i + 1)
