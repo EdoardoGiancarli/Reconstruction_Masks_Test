@@ -29,7 +29,7 @@ def sequence_plot(input_sequence: list[c.Sequence],
                   xlabel: list[str] = None,
                   ylabel: list[str] = None,
                   color: list[(str, str)] = None,
-                  style: list[str] = ["bar"],
+                  style: list[str] = None,
                   simulated_sources: list[tuple[int, int, int, float]] = None,
                   ) -> None:
     """Plot(s) of the input 1D array(s)."""
@@ -40,7 +40,7 @@ def sequence_plot(input_sequence: list[c.Sequence],
     # handle optional arguments
     x = x or [None]*n
     xlabel, ylabel = xlabel or [None]*n, ylabel or [None]*n
-    color, style = color or [('OrangeRed', 'r')]*n, style or [None]*n
+    color, style = color or [('OrangeRed', 'r')]*n, style or ["bar"]*n
     simulated_sources = simulated_sources or [None]*n
 
     # create subplots

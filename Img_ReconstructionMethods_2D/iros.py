@@ -175,7 +175,7 @@ class IROS(_support):
                 check_snr_norm: bool = True,
                 show_peaks: bool = True,
                 show_results: bool = True,
-                )-> tuple[np.array, np.array]:
+                ) -> tuple[dict, np.array, np.array]:
         
         for i in range(self.n):
 
